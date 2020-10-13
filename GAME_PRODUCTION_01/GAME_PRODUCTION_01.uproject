@@ -1,0 +1,16 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "4.25",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "GAME_PRODUCTION_01",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"PhysXVehicles"
+			]
+		}
+	]
+}
