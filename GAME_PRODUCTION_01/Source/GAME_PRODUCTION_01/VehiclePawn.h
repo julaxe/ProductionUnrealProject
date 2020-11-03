@@ -40,11 +40,14 @@ public:
 
 protected:
 
+	
 	//Spring arm that will offset the camera
-	UPROPERTY(Category = Camera, EditDefaultsOnly, BluePrintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class USpringArmComponent* SpringArm;
+	UPROPERTY(Category = "InAirMovement", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float AirMovement;
 
+	UPROPERTY(Category = "InAirMovement", EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	float GroundMovement;
 	//Camera component that will be our viewpoint
-	UPROPERTY(Category = Camera, EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-		class UCameraComponent* Camera;
+	/*UPROPERTY(Category = Camera, EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		class UCameraComponent* Camera;*/
 };

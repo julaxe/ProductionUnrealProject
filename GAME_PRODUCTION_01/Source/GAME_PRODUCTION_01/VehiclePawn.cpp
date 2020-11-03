@@ -44,16 +44,19 @@ AVehiclePawn::AVehiclePawn()
 	Vehicle4W->TransmissionSetup.GearSwitchTime = 0.15f;
 	Vehicle4W->TransmissionSetup.GearAutoBoxLatency = 1.0f;
 
+
+	GroundMovement = 10.f;
+	AirMovement = 3.f;
 	//Create a spring arm component for our chase camera
-	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	/*SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->TargetArmLength = 250.f;
-	SpringArm->bUsePawnControlRotation = true;
+	SpringArm->bUsePawnControlRotation = true;*/
 
 	//Create the chase camera component, also avoid the camera going thru walls
-	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("ChaseCamera"));
+	/*Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("ChaseCamera"));
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
-	Camera->FieldOfView = 90.f;
+	Camera->FieldOfView = 90.f;*/
 }
 
 void AVehiclePawn::Tick(float DeltaSeconds)
@@ -70,12 +73,12 @@ void AVehiclePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	PlayerInputComponent->BindAxis(NAME_ThrottleInput, this, &AVehiclePawn::ApplyThrottle);
 	PlayerInputComponent->BindAxis(NAME_SteerInput, this, &AVehiclePawn::ApplySteering);
 
-	PlayerInputComponent->BindAxis("LookUp", this, &AVehiclePawn::LookUp);
-	PlayerInputComponent->BindAxis("LookRight", this, &AVehiclePawn::LookRight);
+	//PlayerInputComponent->BindAxis("LookUp", this, &AVehiclePawn::LookUp);
+	//PlayerInputComponent->BindAxis("LookRight", this, &AVehiclePawn::LookRight);
 
-	//Actions
-	PlayerInputComponent->BindAction("HandBreak", IE_Pressed, this, &AVehiclePawn::OnHandBrakePressed);
-	PlayerInputComponent->BindAction("HandBreak", IE_Released, this, &AVehiclePawn::OnHandBrakeReleased);
+	////Actions
+	//PlayerInputComponent->BindAction("HandBreak", IE_Pressed, this, &AVehiclePawn::OnHandBrakePressed);
+	//PlayerInputComponent->BindAction("HandBreak", IE_Released, this, &AVehiclePawn::OnHandBrakeReleased);
 
 }
 
@@ -117,4 +120,38 @@ void AVehiclePawn::OnHandBrakeReleased()
 
 void AVehiclePawn::UpdateInAirControl(float DeltaTime)
 {
+	if(UWheeledVehicleMovementComponent4W* Vehicle4W =  CastChecked<UWheeledVehicleMovementComponent4W>(GetVehicleMovement()))
+	{
+		FCollisionQueryParams QueryParams;
+		QueryParams.AddIgnoredActor(this);
+
+		const FVector TraceStart = GetActorLocation() + FVector(0.f,0.f,50.f);
+		const FVector TraceEnd = GetActorLocation() - FVector(0.f,0.f,200.f);
+
+		FHitResult Hit;
+
+		//Check if the car is flipped on its side, and check if the car is in air
+		const bool bInAir = !GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, QueryParams);
+		const bool bNotGrounded = FVector::DotProduct(GetActorUpVector(), FVector::UpVector) < 0.1f;
+		
+		//Only allow in air-movement if we are not on the ground, or are in the air
+		if(bInAir || bNotGrounded)
+		{
+			const float ForwardInput = InputComponent->GetAxisValue(NAME_ThrottleInput);
+			const float RightInput = InputComponent->GetAxisValue(NAME_SteerInput);
+
+			//If car is grounded allow player to roll the car over
+			float AirMovementForcePitch = AirMovement;
+			float AirMovementForceRoll = !bInAir && bNotGrounded ? GroundMovement : AirMovement;
+
+			if(UPrimitiveComponent* VehicleMesh = Vehicle4W->UpdatedPrimitive)
+			{
+				const FVector MovementVector = FVector(RightInput * -AirMovementForceRoll, ForwardInput * AirMovementForcePitch, 0.f) * DeltaTime * 200.f;
+				const FVector NewAngularMovement = GetActorRotation().RotateVector(MovementVector);
+
+				VehicleMesh->SetPhysicsAngularVelocity(NewAngularMovement, true);
+			}
+		}
+
+	}
 }
