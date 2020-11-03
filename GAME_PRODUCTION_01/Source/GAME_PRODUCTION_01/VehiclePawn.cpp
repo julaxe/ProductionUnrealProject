@@ -45,8 +45,8 @@ AVehiclePawn::AVehiclePawn()
 	Vehicle4W->TransmissionSetup.GearAutoBoxLatency = 1.0f;
 
 
-	GroundMovement = 10.f;
-	AirMovement = 3.f;
+	GroundMovement = 6.f;
+	AirMovement = 1.f;
 	//Create a spring arm component for our chase camera
 	/*SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
